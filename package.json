@@ -1,0 +1,18 @@
+{
+  "name": "oct-cap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "scss": "sass src/main.scss:dist/app.css --style compressed --watch",
+    "dev": "npm run scss & electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^8.2.1",
+    "normalize.css": "^8.0.1"
+  }
+}

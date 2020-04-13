@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;1,500&display=swap" rel="stylesheet">
+    <title>Document</title>
+</head>
+<body>
+    <div id="crop-container">
+        <div id="crop-select" style="--pos-x: 0px; --pos-y: 0px; --width: 0px; --height: 0px" ></div>
+    </div>
+    <div id="cursor" style="--mouse-x: 0px; --mouse-y: 0px">
+        <span class="mouse-position"></span>
+    </div>
+</body>
+</html>
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', sans-serif;
+        font-size: 15px;
+        cursor: none;
+        font-weight: 400;
+    }
+
+    #crop-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    #crop-select {
+        position: fixed;
+        left: var(--pos-x);
+        top: var(--pos-y);
+        width: var(--width);
+        height: var(--height);
+        background: rgba(0,0,0,.5);
+    }
+
+    #cursor {
+        position: fixed;
+        left: var(--mouse-x);
+        top: var(--mouse-y);
+        z-index: 9;
+        pointer-events: none;
+    }
+
+    #cursor .mouse-position {
+        position: absolute;
+        left: 10px;
+        top: 5px;
+        font-size: 10px;
+        line-height: normal;
+        white-space: nowrap;
+        text-shadow: 1px 1px 0 #222;
+        color: #FFF;
+    }
+
+    #cursor:after {
+        content: "";
+        width: 20px;
+        height: 20px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        -webkit-transform: translate(-50%, -50%);
+        background: url(./images/cursor.svg) no-repeat center center;
+        background-size: 100%;
+    }
+</style>
+
+<script>
+    const { desktopCapturer, ipcRenderer, shell } = require('electron')
+    const fs = require('fs')
+    const app_screen = { width: window.screen.width, height: window.screen.height }
+    const screen_ratio = app_screen.width / app_screen.height 
+    const screen_ratio_x2 = (app_screen.width * 2) / ((app_screen.width * 2) / screen_ratio)
+    const constraints = { 
+        types: ['screen'], 
+        // thumbnailSize: app_screen,
+        thumbnailSize: { 
+            width: app_screen.width * 2, 
+            height: (app_screen.width * 2) / screen_ratio 
+        } 
+    }
+
+    const cropContainer = document.querySelector( '#crop-container' );
+    const cropSelect = document.querySelector( '#crop-select' )
+    const cursor = document.querySelector( '#cursor' )
+    const cursor_pos_num = document.querySelector( '.mouse-position' )
+
+    let mousePos = { x: 0, y: 0 }
+    let cropSelect_info = { active: false, startX: 0, startY: 0, x: 0, y: 0, width: 0, height: 0 }
+
+    function update_cursor_position_num ( x, y ) {
+       cursor_pos_num.innerHTML = `${ x }, ${ y }` 
+    }
+
+    cropContainer.addEventListener( 'mousemove', e => {
+
+        mousePos.x = e.clientX 
+        mousePos.y = e.clientY 
+
+        cursor.style.setProperty( '--mouse-x', mousePos.x + 'px' )
+        cursor.style.setProperty( '--mouse-y', mousePos.y + 'px' )
+
+        update_cursor_position_num( ...Object.values( mousePos ) )
+
+        if( cropSelect_info.active == true ) {
+            if( e.clientX > cropSelect_info.startX ) {
+                cropSelect_info.width = e.clientX - cropSelect_info.startX
+                cropSelect_info.x = cropSelect_info.startX
+            } else {
+                cropSelect_info.width = cropSelect_info.startX - e.clientX
+                cropSelect_info.x = cropSelect_info.startX - cropSelect_info.width
+            }
+            
+            if( e.clientY > cropSelect_info.startY ) {
+                cropSelect_info.height = e.clientY - cropSelect_info.startY
+                cropSelect_info.y = cropSelect_info.startY
+            } else {
+                cropSelect_info.height = cropSelect_info.startY - e.clientY
+                cropSelect_info.y = cropSelect_info.startY - cropSelect_info.height
+            }
+
+            update_crop_select();  
+        }
+
+    } )
+
+    cropContainer.addEventListener( 'mousedown', e => {
+        cropSelect.style.display = 'block'
+
+        cropSelect_info.active = true
+        cropSelect_info.startX = e.clientX 
+        cropSelect_info.startY = e.clientY
+        cropSelect_info.x = e.clientX 
+        cropSelect_info.y = e.clientY
+        cropSelect_info.width = 0
+        cropSelect_info.height = 0
+        
+        update_crop_select(); 
+    } )
+
+    cropContainer.addEventListener( 'mouseup', e => {
+        cropSelect.style.display = 'none'
+        cursor.style.display = 'none'
+        cropSelect_info.active = false;
+
+        setTimeout( () => {
+            snapshot() 
+        }, 100 )
+        
+    } )
+
+    function update_crop_select() {
+        cropSelect.style.setProperty( '--pos-x', cropSelect_info.x + 'px' )
+        cropSelect.style.setProperty( '--pos-y', cropSelect_info.y + 'px' )
+        cropSelect.style.setProperty( '--width', cropSelect_info.width + 'px' )
+        cropSelect.style.setProperty( '--height', cropSelect_info.height + 'px' )
+    }
+
+    function snapshot() {
+
+        let canvas = document.createElement( 'CANVAS' )
+        let context = canvas.getContext( '2d' )
+        canvas.width = constraints.thumbnailSize.width * (cropSelect_info.width / app_screen.width)
+        canvas.height = constraints.thumbnailSize.height * (cropSelect_info.height / app_screen.height)
+         
+
+        desktopCapturer.getSources( constraints ).then(async sources => {
+    
+            for (const source of sources) {
+                if (source.name === 'Entire Screen') {
+
+                    try {
+
+                        let base64image = await source.thumbnail.toDataURL() 
+
+                        var _image = new Image();
+                        
+                        _image.onload = () => {
+                            context.drawImage( 
+                                _image, 
+                                constraints.thumbnailSize.width * (cropSelect_info.x / app_screen.width), 
+                                constraints.thumbnailSize.height * (cropSelect_info.y / app_screen.height), 
+                                canvas.width, 
+                                canvas.height, 
+                                0, 
+                                0, 
+                                canvas.width, 
+                                canvas.height )
+
+                            let f = canvas.toDataURL();
+
+                            ipcRenderer.send( 'app-screenshot', f )
+                        }
+
+                        _image.src = base64image
+                        // console.log( source.thumbnail.toDataURL() )
+
+                    } catch (e) {
+                        console.log( e )
+                    }
+
+                    return;
+                }
+            }
+        })
+    }
+
+    ipcRenderer.on( 'snapshot-completed', () => {
+        cursor.style.display = 'block'
+    } )
+</script>
