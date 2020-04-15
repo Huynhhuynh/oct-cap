@@ -198,13 +198,11 @@
                                 canvas.width, 
                                 canvas.height )
 
-                            let f = canvas.toDataURL();
-
-                            ipcRenderer.send( 'app-screenshot', f )
+                            let image = canvas.toDataURL();
+                            ipcRenderer.send( 'app-screenshot', image )
                         }
 
                         _image.src = base64image
-                        // console.log( source.thumbnail.toDataURL() )
 
                     } catch (e) {
                         console.log( e )

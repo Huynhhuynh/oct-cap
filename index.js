@@ -2,11 +2,14 @@ const path = require( 'path' )
 const url = require('url')
 const fs = require('fs')
 const os = require('os')
+const crypto = require("crypto");
+
 const { app, BrowserWindow, screen, Menu, ipcMain, Tray } = require( 'electron' )
 
 let tray 
 let win
 let cropWin
+let editorWin
 
 app.allowRendererProcessReuse = true 
 app.setPath( 'userData', __dirname + '/saved_recordings' )
@@ -91,9 +94,36 @@ function cropWindow () {
     // cropWin.webContents.openDevTools()
 }
 
+function createEditorWindow () {
+    const {width, height} = screen.getPrimaryDisplay().workAreaSize
+
+    editorWin = new BrowserWindow( {
+        minWidth: 800,
+        minHeight: 600,
+        show: false,
+        // frame: false,
+        resizable: false,
+        // transparent: true,
+        // alwaysOnTop: true,
+        webPreferences: { 
+            nodeIntegration: true 
+        }
+    } )
+
+    editorWin.on('close', e => {
+        e.preventDefault();
+        editorWin.hide();
+    });
+
+    editorWin.loadURL( path.join( 'file://', __dirname, '/editor.html') );
+    
+    editorWin.webContents.openDevTools()
+}
+
 app.on( 'ready', () => {
     // createWindow();
-    cropWindow();
+    cropWindow()
+    createEditorWindow()
     createTray() 
 } )
 
@@ -101,8 +131,11 @@ ipcMain.on( 'app-screenshot', ( event, base64image ) => {
     // console.log( arg );
     var data = base64image.replace(/^data:image\/\w+;base64,/, "");
     var buf = new Buffer.from( data, 'base64' );
+    var name = crypto.randomBytes(16).toString("hex") + '-screenshot.png'
+    var path_image = path.join( __dirname, '/snapshot/' + name )
+
     fs.writeFile(
-        "screenshot.png",
+        path_image,
         buf,
         err => {
             if( err ) {
@@ -112,6 +145,15 @@ ipcMain.on( 'app-screenshot', ( event, base64image ) => {
 
             cropWin.webContents.send( 'snapshot-completed', true )
             cropWin.hide()
+            
+            // editorWin.loadURL( path.join( 'file://', __dirname, `/editor.html#${ 'snapshot/' + name }`) );
+            editorWin.webContents.send( 'go-edit', 'snapshot/' + name )
+            editorWin.show()
         }
     )
+} )
+
+ipcMain.on( 'resize-editor-window', ( event, size ) => {
+    // console.log( size )
+    editorWin.setSize( parseInt( size.width ), parseInt( size.height ) )
 } )

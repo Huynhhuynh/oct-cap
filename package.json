@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "electron": "^8.2.1",
+    "fabric": "^3.6.3",
     "normalize.css": "^8.0.1"
   }
 }

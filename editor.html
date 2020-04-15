@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snapshot editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;1,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./dist/app.css">
+</head>
+<body class="editor">
+    <div class="editor-tools">
+        <ul class="left-tools">
+            <li>
+                <label title="Arrow">
+                    <span class="icon">
+                        <svg enable-background="new 0 0 451.111 451.111" viewBox="0 0 451.111 451.111"><path d="m257.778 32.222-48.333 48.333 112.778 112.778h-322.223v64.444h322.222l-112.777 112.779 48.333 48.333 193.333-193.333z"/></svg>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label title="Square">
+                    <span class="icon">
+                        <svg enable-background="new 0 0 451.111 451.111" viewBox="0 0 451.111 451.111"><path d="m451.111 451.111h-451.111v-451.111h451.111zm-386.667-64.444h322.222v-322.223h-322.222z"/></svg>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label title="Square">
+                    <span class="icon">
+                        <svg enable-background="new 0 0 467.765 467.765" viewBox="0 0 467.765 467.765"><path d="m58.471 0v87.706h58.471v-29.235h87.706v350.824h-58.471v58.471h175.412v-58.471h-58.471v-350.824h87.706v29.235h58.471v-87.706z"/></svg>
+                    </span>
+                </label>
+            </li>
+        </ul>
+        <ul class="right-tools">
+            <li>
+                <label title="Save & Copy URL">
+                    <span class="icon">
+                        <svg x="0px" y="0px" viewBox="0 0 49 49" style="enable-background:new 0 0 49 49;" xml:space="preserve"> <g> <rect x="27.5" y="5" width="6" height="10"/> <path d="M39.914,0H0.5v49h48V8.586L39.914,0z M10.5,2h26v16h-26V2z M39.5,47h-31V26h31V47z"/> <path d="M13.5,32h7c0.553,0,1-0.447,1-1s-0.447-1-1-1h-7c-0.553,0-1,0.447-1,1S12.947,32,13.5,32z"/> <path d="M13.5,36h10c0.553,0,1-0.447,1-1s-0.447-1-1-1h-10c-0.553,0-1,0.447-1,1S12.947,36,13.5,36z"/> <path d="M26.5,36c0.27,0,0.52-0.11,0.71-0.29c0.18-0.19,0.29-0.45,0.29-0.71s-0.11-0.521-0.29-0.71c-0.37-0.37-1.04-0.37-1.41,0 c-0.19,0.189-0.3,0.439-0.3,0.71c0,0.27,0.109,0.52,0.29,0.71C25.979,35.89,26.229,36,26.5,36z"/> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg>
+                    </span>
+                    <span class="text">Save & Copy URL</span>
+                </label>
+            </li> 
+        </ul>
+    </div>
+    <div id="editor-container">
+        <canvas id="c-editor"></canvas>
+    </div>
+</body>
+</html>
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: #222;
+    }
+</style>
+
+<script src="./node_modules/fabric/dist/fabric.min.js"></script>
+<script>
+    const { desktopCapturer, ipcRenderer, shell, remote } = require( 'electron' )
+    const fs = require( 'fs' )
+    const path = require( 'path' )
+    const crypto = require( 'crypto' )
+    const draw = require( './src/draw.js' )
+    
+    let image_url = window.location.hash.substring( 1 )
+
+    ipcRenderer.on( 'go-edit', ( event, hash ) => {
+        
+        let root_uri = path.join( 'file://', __dirname, '/editor.html')  // window.location.href.split( '#' )[0]
+        let editor_url = `${ root_uri }?${ crypto.randomBytes(16).toString("hex") }#${ hash }` 
+
+        window.location.href = editor_url 
+    } )
+
+    let c = document.querySelector( '#c-editor' )
+    let canvas 
+    
+    function setupEditor () {
+        let _image = new Image()
+        _image.onload = function() {
+            let width = this.width / 2
+            let height = this.height / 2
+
+            ipcRenderer.send( 'resize-editor-window', { width, height } )
+            
+            setTimeout( () => {
+                c.width = window.outerWidth
+                c.height = window.outerHeight - 30
+                let ratio = c.width / c.height
+
+                canvas = new fabric.Canvas( 'c-editor', {
+                    selection: false,
+                } )
+
+                fabric.Image.fromURL( this.src, function( img )  {
+
+                    img.set( {
+                        left: window.outerWidth / 2,
+                        top: window.outerHeight / 2,
+                        originX: 'center',
+                        originY: 'center'
+                    } );
+
+                    img.scaleToWidth( width );
+                    img.scaleToHeight( height );
+
+                    canvas.setBackgroundImage( img, canvas.renderAll.bind( canvas ) );
+                } );
+
+                afterInit()
+            }, 500 )
+        }
+
+        _image.src = image_url 
+    }
+
+    setupEditor()
+
+    function afterInit() {
+        draw( canvas )
+    }
+</script>
