@@ -4,6 +4,59 @@ const draw = ( canvas ) => {
     let pos = {x: 0, y: 0}
     let currentObject
     let isTool = 'arrow'
+    let state
+    let undo = []
+    let redo = []
+    let $undo = document.querySelector( '#undo' )
+    let $redo = document.querySelector( '#redo' )
+
+    $undo.addEventListener( 'click', e => {
+        replay( undo, redo, $redo, $undo )
+    } )
+
+    $redo.addEventListener( 'click', e => {
+        replay( redo, undo, $undo, $redo )
+    } )
+
+    function save() {
+        // clear the redo stack
+        redo = [];
+        // document.querySelector( '#redo' ).disabled = true
+        $redo.classList.remove( '__active' )
+
+        if (state) {
+            undo.push(state);
+            // document.querySelector( '#undo' ).disabled = false
+            $undo.classList.add( '__active' )
+        }
+
+        state = JSON.stringify( canvas );
+    }
+
+    function replay( playStack, saveStack, buttonsOn, buttonsOff ) {
+        saveStack.push( state );
+        state = playStack.pop();
+
+        // turn both buttons off for the moment to prevent rapid clicking
+        // buttonsOn.disabled = true 
+        // buttonsOff.disabled = true
+        buttonsOn.classList.remove( '__active' )
+        buttonsOff.classList.remove( '__active' )
+
+        canvas.clear();
+        canvas.loadFromJSON( state, () => {
+
+            canvas.renderAll();
+            // now turn the buttons back on if applicable
+            // buttonsOn.disabled = false
+            buttonsOn.classList.add( '__active' )
+
+            if ( playStack.length ) {
+                // buttonsOff.disabled = false
+                buttonsOff.classList.add( '__active' ) 
+            }
+        } );
+    }
 
     canvas.on( 'mouse:down', o => {
         
@@ -36,6 +89,10 @@ const draw = ( canvas ) => {
         canvas.renderAll();
         isDown = false
     } )
+
+    canvas.on( 'object:modified', () => {
+        save();
+    } ); 
     
     const calcArrowPoints = ( x1, y1, x2, y2 ) => {
         let angle = Math.atan2(y2 - y1, x2 - x1);
@@ -95,7 +152,6 @@ const draw = ( canvas ) => {
                 let obj =  new fabric.Polyline( points, {
                     fill: 'red',
                     stroke: 'red',
-                    opacity: 1,
                     strokeWidth: 1,
                     originX: 'left',
                     originY: 'top',
@@ -103,6 +159,7 @@ const draw = ( canvas ) => {
                     objectCaching: false,
                     transparentCorners: true,
                     cornerStyle: 'circle',
+                    opacity: 0,
                 } ); 
 
                 obj.setControlsVisibility( {
@@ -130,15 +187,25 @@ const draw = ( canvas ) => {
 
                 currentObject.set( {
                     points: calcArrowPoints( pos.x, pos.y, _x2, _y2 ),
+                    opacity: 1
                 } )
             }
 
             obj._redraw = ( _obj ) => {
                 let points = _obj.get( 'points' )
-                let obj = makeObjectArrow( points )
+                let opacity = _obj.get( 'opacity' )
+
                 canvas.remove( currentObject )
-                canvas.add( obj )
-                currentObject = obj 
+
+                if( opacity != 0 ) {
+                    let obj = makeObjectArrow( points )
+                    obj.set( { opacity: 1 } )
+
+                    canvas.add( obj )
+                    currentObject = obj 
+
+                    save();
+                }
             }
 
             return obj

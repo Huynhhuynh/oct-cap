@@ -2,9 +2,10 @@ const path = require( 'path' )
 const url = require('url')
 const fs = require('fs')
 const os = require('os')
-const crypto = require("crypto");
+const crypto = require('crypto')
+const save = require('./src/save')
 
-const { app, BrowserWindow, screen, Menu, ipcMain, Tray } = require( 'electron' )
+const { app, BrowserWindow, screen, Menu, ipcMain, Tray, Notification } = require( 'electron' )
 
 let tray 
 let win
@@ -28,12 +29,22 @@ const createTray = () => {
         {  type: "separator"  },
         { 
             label: "Quit", 
-            click: () => { app.quit() }
+            click: () => { 
+                app.quit() 
+            }
         }
     ] );
 
     tray.setContextMenu( menu );  
 }
+
+app.on('before-quit', () => {
+    cropWin.removeAllListeners('close');
+    cropWin.close();
+
+    editorWin.removeAllListeners('close');
+    editorWin.close();
+});
 
 const createWindow = () => {
     const {width, height} = screen.getPrimaryDisplay().workAreaSize
@@ -47,7 +58,6 @@ const createWindow = () => {
         frame: false,
         resizable: false,
         transparent: true,
-        // alwaysOnTop: true,
         webPreferences: { 
             nodeIntegration: true 
         }
@@ -61,7 +71,8 @@ const createWindow = () => {
 }
 
 function cropWindow () {
-    const activeScreen = screen.getPrimaryDisplay() 
+    let activeScreen = screen.getPrimaryDisplay()
+
     cropWin = new BrowserWindow( {
         transparent: true,
         enableLargerThanScreen: true,
@@ -116,8 +127,7 @@ function createEditorWindow () {
     });
 
     editorWin.loadURL( path.join( 'file://', __dirname, '/editor.html') );
-    
-    editorWin.webContents.openDevTools()
+    // editorWin.webContents.openDevTools()
 }
 
 app.on( 'ready', () => {
@@ -127,33 +137,18 @@ app.on( 'ready', () => {
     createTray() 
 } )
 
-ipcMain.on( 'app-screenshot', ( event, base64image ) => {
-    // console.log( arg );
-    var data = base64image.replace(/^data:image\/\w+;base64,/, "");
-    var buf = new Buffer.from( data, 'base64' );
-    var name = crypto.randomBytes(16).toString("hex") + '-screenshot.png'
-    var path_image = path.join( __dirname, '/snapshot/' + name )
-
-    fs.writeFile(
-        path_image,
-        buf,
-        err => {
-            if( err ) {
-                console.log( err )
-                return;
-            }
-
-            cropWin.webContents.send( 'snapshot-completed', true )
-            cropWin.hide()
-            
-            // editorWin.loadURL( path.join( 'file://', __dirname, `/editor.html#${ 'snapshot/' + name }`) );
-            editorWin.webContents.send( 'go-edit', 'snapshot/' + name )
-            editorWin.show()
-        }
-    )
+ipcMain.on( 'app-screenshot', ( event, name ) => {
+    cropWin.webContents.send( 'snapshot-completed', true )
+    cropWin.hide()
+    
+    editorWin.webContents.send( 'go-edit', 'snapshot/' + name )
+    editorWin.show()
 } )
 
 ipcMain.on( 'resize-editor-window', ( event, size ) => {
-    // console.log( size )
     editorWin.setSize( parseInt( size.width ), parseInt( size.height ) )
 } )
+
+ipcMain.on('save_dropbox_complete', () => {
+    editorWin.hide()
+})

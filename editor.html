@@ -11,6 +11,22 @@
     <div class="editor-tools">
         <ul class="left-tools">
             <li>
+                <label id="undo">
+                    <!-- <button id="undo" disabled>Undo</button> -->
+                    <span class="icon">
+                        <svg x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve"> <g> <g> <path d="M361.5,140.148H50.689l43.529-43.71c5.846-5.87,5.826-15.368-0.044-21.214c-5.871-5.847-15.368-5.826-21.213,0.044 L4.372,144.143c-2.969,2.982-4.417,6.899-4.361,10.8C0.009,155.012,0,155.079,0,155.148c0,5.201,2.649,9.781,6.669,12.472 l66.292,66.568c5.847,5.87,15.343,5.889,21.213,0.044c5.87-5.846,5.89-15.344,0.044-21.214l-42.692-42.87H361.5 c66.444,0,120.5,54.056,120.5,120.5s-54.056,120.5-120.5,120.5H15c-8.284,0-15,6.716-15,15s6.716,15,15,15h346.5 c82.986,0,150.5-67.514,150.5-150.5S444.486,140.148,361.5,140.148z"/> </g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg>
+                    </span>
+                </label>
+            </li>
+            <li>
+                <label id="redo">
+                    <!-- <button id="redo" disabled>Redo</button> -->
+                    <span class="icon">
+                        <svg x="0px" y="0px" viewBox="0 0 512.001 512.001" style="enable-background:new 0 0 512.001 512.001;" xml:space="preserve"> <g> <g> <path d="M497,411.148H150.5c-66.444,0-120.5-54.056-120.5-120.5s54.056-120.5,120.5-120.5h309.975l-42.692,42.87 c-5.846,5.87-5.826,15.368,0.044,21.214c5.87,5.846,15.367,5.825,21.213-0.044l66.292-66.568c4.02-2.691,6.669-7.271,6.669-12.472 c0-0.069-0.009-0.136-0.01-0.205c0.056-3.9-1.392-7.818-4.361-10.8l-68.589-68.875c-5.846-5.869-15.343-5.89-21.213-0.044 s-5.89,15.344-0.044,21.214l43.529,43.71H150.5c-82.986,0-150.5,67.514-150.5,150.5s67.514,150.5,150.5,150.5H497 c8.284,0,15-6.716,15-15S505.284,411.148,497,411.148z"/> </g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg>
+                    </span>
+                </label>
+            </li>
+            <!-- <li>
                 <label title="Arrow">
                     <span class="icon">
                         <svg enable-background="new 0 0 451.111 451.111" viewBox="0 0 451.111 451.111"><path d="m257.778 32.222-48.333 48.333 112.778 112.778h-322.223v64.444h322.222l-112.777 112.779 48.333 48.333 193.333-193.333z"/></svg>
@@ -30,11 +46,11 @@
                         <svg enable-background="new 0 0 467.765 467.765" viewBox="0 0 467.765 467.765"><path d="m58.471 0v87.706h58.471v-29.235h87.706v350.824h-58.471v58.471h175.412v-58.471h-58.471v-350.824h87.706v29.235h58.471v-87.706z"/></svg>
                     </span>
                 </label>
-            </li>
+            </li> -->
         </ul>
         <ul class="right-tools">
             <li>
-                <label title="Save & Copy URL">
+                <label title="Save & Copy URL" id="save_copy_url">
                     <span class="icon">
                         <svg x="0px" y="0px" viewBox="0 0 49 49" style="enable-background:new 0 0 49 49;" xml:space="preserve"> <g> <rect x="27.5" y="5" width="6" height="10"/> <path d="M39.914,0H0.5v49h48V8.586L39.914,0z M10.5,2h26v16h-26V2z M39.5,47h-31V26h31V47z"/> <path d="M13.5,32h7c0.553,0,1-0.447,1-1s-0.447-1-1-1h-7c-0.553,0-1,0.447-1,1S12.947,32,13.5,32z"/> <path d="M13.5,36h10c0.553,0,1-0.447,1-1s-0.447-1-1-1h-10c-0.553,0-1,0.447-1,1S12.947,36,13.5,36z"/> <path d="M26.5,36c0.27,0,0.52-0.11,0.71-0.29c0.18-0.19,0.29-0.45,0.29-0.71s-0.11-0.521-0.29-0.71c-0.37-0.37-1.04-0.37-1.41,0 c-0.19,0.189-0.3,0.439-0.3,0.71c0,0.27,0.109,0.52,0.29,0.71C25.979,35.89,26.229,36,26.5,36z"/> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> <g> </g> </svg>
                     </span>
@@ -64,6 +80,10 @@
     const path = require( 'path' )
     const crypto = require( 'crypto' )
     const draw = require( './src/draw.js' )
+    const save = require( './src/save.js' )
+    const dropboxV2Api = require( 'dropbox-v2-api' )
+    const token = 'P3GU6Xd5XCAAAAAAAAAJDsYbhU5OxLlxjUSNEMIUvJS2zCbDRcn3b4EPSZK6nO27'
+    const copy = require( 'copy-text-to-clipboard' )
     
     let image_url = window.location.hash.substring( 1 )
 
@@ -111,13 +131,61 @@
                 } );
 
                 afterInit()
-            }, 500 )
+            }, 300 )
         }
 
         _image.src = image_url 
     }
 
     setupEditor()
+
+    function basename(path) {
+        return path.split('/').reverse()[0];
+    }
+
+    const save_copy_url = () => {
+
+        
+
+        save( canvas.toDataURL( {format: 'jpeg'} ), path.join( __dirname, image_url ), data => {
+            const dropbox = dropboxV2Api.authenticate( {token: token} );
+            remote.BrowserWindow.getFocusedWindow().hide();
+
+            dropbox({
+                resource: 'files/upload',
+                parameters: {
+                    path: '/snapshot/' + basename( data.filename )
+                },
+                readStream: fs.createReadStream( data.filename )
+            }, (err, result, response) => {
+                if (err) { return console.log(err); }
+                // console.log('upload ', result)
+
+                dropbox({
+                    resource: 'sharing/create_shared_link_with_settings',
+                    parameters: {
+                        path: result.path_display,
+                        settings: {
+                            requested_visibility: "public",
+                            audience: "public",
+                            access: "viewer"
+                        }
+                    },
+                }, (err, result, response) => {
+                    if (err) { return console.log(err); }
+                    copy( result.url )
+                    new Notification( 'Url copied to clipboad!' )
+                    shell.openExternal( result.url )
+                    // ipcRenderer.send( 'save_dropbox_complete' )
+                })
+            });
+        } )
+    }
+
+    document.querySelector( '#save_copy_url' ).addEventListener( 'click', e => {
+        e.preventDefault()
+        save_copy_url()
+    } )
 
     function afterInit() {
         draw( canvas )

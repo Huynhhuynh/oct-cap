@@ -1,0 +1,7 @@
+directories:
+  output: dist
+  buildResources: build
+appId: Octopus Capture
+mac:
+  category: public.app-category.developer-tools
+electronVersion: 8.2.3

@@ -79,3 +79,14 @@
         }
     }
 }
+
+#undo,
+#redo {
+    pointer-events: none;
+    opacity: .5;
+
+    &.__active {
+        pointer-events: auto;
+        opacity: 1;
+    }
+}

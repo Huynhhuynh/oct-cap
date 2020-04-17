@@ -78,12 +78,16 @@
 
 <script>
     const { desktopCapturer, ipcRenderer, shell } = require('electron')
-    const fs = require('fs')
+    const path = require( 'path' )
+    const fs = require( 'fs' )
+    const crypto = require( 'crypto' )
+    const save = require( './src/save.js' )
+
     const app_screen = { width: window.screen.width, height: window.screen.height }
     const screen_ratio = app_screen.width / app_screen.height 
     const screen_ratio_x2 = (app_screen.width * 2) / ((app_screen.width * 2) / screen_ratio)
     const constraints = { 
-        types: ['screen'], 
+        types: ['window', 'screen'], // ['screen'], 
         // thumbnailSize: app_screen,
         thumbnailSize: { 
             width: app_screen.width * 2, 
@@ -156,7 +160,7 @@
 
         setTimeout( () => {
             snapshot() 
-        }, 100 )
+        }, 50 )
         
     } )
 
@@ -167,23 +171,23 @@
         cropSelect.style.setProperty( '--height', cropSelect_info.height + 'px' )
     }
 
+    let canvas = document.createElement( 'CANVAS' )
+    let context = canvas.getContext( '2d' )
+    
     function snapshot() {
-
-        let canvas = document.createElement( 'CANVAS' )
-        let context = canvas.getContext( '2d' )
         canvas.width = constraints.thumbnailSize.width * (cropSelect_info.width / app_screen.width)
         canvas.height = constraints.thumbnailSize.height * (cropSelect_info.height / app_screen.height)
-         
-
+        
         desktopCapturer.getSources( constraints ).then(async sources => {
-    
+            // console.log( sources )
+            // return;
+
             for (const source of sources) {
-                if (source.name === 'Entire Screen') {
+                if (source.name === 'Entire Screen'  ) {
 
                     try {
 
-                        let base64image = await source.thumbnail.toDataURL() 
-
+                        let base64image = await source.thumbnail.toDataURL()
                         var _image = new Image();
                         
                         _image.onload = () => {
@@ -199,7 +203,14 @@
                                 canvas.height )
 
                             let image = canvas.toDataURL();
-                            ipcRenderer.send( 'app-screenshot', image )
+
+                            var name = crypto.randomBytes(16).toString("hex") + '-screenshot.png'
+                            var path_image = path.join( __dirname, '/snapshot/' + name )
+                            
+                            save( image, path_image, () => {
+                                ipcRenderer.send( 'app-screenshot', name )
+                            } )
+                            
                         }
 
                         _image.src = base64image
